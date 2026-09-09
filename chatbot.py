@@ -2,10 +2,10 @@ from dotenv import load_dotenv
 import streamlit as st
 from langchain_groq import ChatGroq
 
-# Load enviornment variables
+# Load environment variables
 load_dotenv()
 
-# streamlit page setup
+# Streamlit page setup
 st.set_page_config(
     page_title="Generative ChatBot AI",
     page_icon="🤖",
@@ -14,34 +14,54 @@ st.set_page_config(
 
 st.title("Generative ChatBot AI Application")
 
-#initiate chat history
+# Initialize chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-#show chat history
+# Show chat history
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# llm initiate
-
+# Initialize LLM
 llm = ChatGroq(
-    model = "llama-3.3-70b-versatile",
-    temperature= 0.1
+    model="openai/gpt-oss-120b",
+    temperature=0.1
 )
 
-# input box
+# Input box
 user_prompt = st.chat_input("Ask ChatBot...")
 
 if user_prompt:
-    st.chat_message("user").markdown(user_prompt)
-    st.session_state.chat_history.append({"role" : "user", "content" : user_prompt})
+    # Show user message
+    with st.chat_message("user"):
+        st.markdown(user_prompt)
 
+    # Add user message to history
+    st.session_state.chat_history.append({
+        "role": "user",
+        "content": user_prompt
+    })
+
+    # Invoke LLM
     response = llm.invoke(
-    input= [{"role" : "system", "content" : "you are a helpful assistant."}, *st.session_state.chat_history]
+        [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            *st.session_state.chat_history
+        ]
     )
-    assistant_response = response.content
-    st.session_state.chat_history.append({"role" : "assistant", "content" : assistant_response})
 
+    assistant_response = response.content
+
+    # Add assistant response to history
+    st.session_state.chat_history.append({
+        "role": "assistant",
+        "content": assistant_response
+    })
+
+    # Show assistant response
     with st.chat_message("assistant"):
         st.markdown(assistant_response)
